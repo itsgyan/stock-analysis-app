@@ -38,9 +38,10 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-[70vh]">
       <div className="mc-card w-full max-w-md p-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <img src="/bear-bull.png" alt="MarketLens Logo" className="w-16 h-16 object-cover rounded-full shadow-lg border-2 border-orange-500 bg-slate-100 mb-4" />
           <h2 className="text-2xl font-bold text-slate-800">
-            Login to Stock<span className="text-orange-500">Vision</span>
+            Login to Market<span className="text-orange-500">Lens</span>
           </h2>
           <p className="text-sm text-slate-500 mt-2">Access your portfolio and custom watchlists</p>
         </div>

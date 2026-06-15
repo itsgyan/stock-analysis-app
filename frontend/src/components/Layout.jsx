@@ -190,8 +190,8 @@ const Layout = () => {
         <div className="flex items-center gap-4 md:gap-6 w-full md:w-auto justify-between md:justify-start">
           <div className="flex items-center gap-4">
             <Menu size={24} className="cursor-pointer hover:text-orange-400" />
-            <Link to="/dashboard" className="text-2xl font-black tracking-tighter text-white flex items-center gap-1 md:border-r md:border-slate-600 md:pr-6">
-              <Activity className="text-orange-500" size={28} />
+            <Link to="/dashboard" className="text-2xl font-black tracking-tighter text-white flex items-center gap-2 md:border-r md:border-slate-600 md:pr-6">
+              <img src="/bear-bull.png" alt="MarketLens" className="w-10 h-10 object-cover rounded-full shadow-lg border-2 border-orange-500 bg-slate-100" />
               Market<span className="text-orange-500">Lens</span>
             </Link>
           </div>

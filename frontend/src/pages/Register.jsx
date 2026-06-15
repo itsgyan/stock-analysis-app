@@ -42,7 +42,8 @@ const Register = () => {
   return (
     <div className="flex items-center justify-center min-h-[70vh]">
       <div className="mc-card w-full max-w-md p-8">
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 flex flex-col items-center">
+          <img src="/bear-bull.png" alt="MarketLens Logo" className="w-16 h-16 object-cover rounded-full shadow-lg border-2 border-orange-500 bg-slate-100 mb-4" />
           <h2 className="text-2xl font-bold text-slate-800">
             Create an Account
           </h2>
