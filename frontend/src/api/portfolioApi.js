@@ -6,7 +6,7 @@ import api from './axios';
  * @returns {Promise<Object>} - Portfolio object with items
  */
 export const getPortfolio = async () => {
-  const response = await api.get('/api/portfolios/my');
+  const response = await api.get('/api/portfolio');
   return response.data;
 };
 
@@ -16,6 +16,6 @@ export const getPortfolio = async () => {
  * @returns {Promise<Object>} - Watchlist object with stocks
  */
 export const getWatchlist = async () => {
-  const response = await api.get('/api/watchlists/my');
+  const response = await api.get('/api/watchlist');
   return response.data;
 };

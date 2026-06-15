@@ -7,7 +7,7 @@ import api from './axios';
  * @returns {Promise<{ token: string, type: string }>}
  */
 export const login = async (username, password) => {
-  const response = await api.post('/api/auth/signin', { username, password });
+  const response = await api.post('/api/auth/login', { usernameOrEmail: username, password });
   const { token } = response.data;
 
   if (token) {
@@ -26,6 +26,6 @@ export const login = async (username, password) => {
  * @returns {Promise<{ message: string }>}
  */
 export const signup = async (username, email, password) => {
-  const response = await api.post('/api/auth/signup', { username, email, password });
+  const response = await api.post('/api/auth/register', { username, email, password });
   return response.data;
 };
