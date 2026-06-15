@@ -12,15 +12,25 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder implements CommandLineRunner {
 
     private final StockRepository stockRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) {
+        try {
+            jdbcTemplate.execute("ALTER TABLE users DROP COLUMN IF EXISTS role CASCADE;");
+            log.info("Dropped legacy 'role' column from 'users' table.");
+        } catch (Exception e) {
+            log.warn("Failed to drop legacy role column: " + e.getMessage());
+        }
+
         if (stockRepository.count() == 0) {
             log.info("Seeding stocks table with initial data...");
             LocalDateTime now = LocalDateTime.now();

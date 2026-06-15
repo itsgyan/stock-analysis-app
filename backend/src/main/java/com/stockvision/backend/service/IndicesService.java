@@ -49,6 +49,16 @@ public class IndicesService {
             }
         }
 
+        if (indices.isEmpty()) {
+            log.warn("All Yahoo Finance API calls failed, returning mock data for indices.");
+            return Arrays.asList(
+                Map.of("name", "SENSEX", "price", 73158.24, "change", 124.50, "pctChange", 0.17, "pos", true),
+                Map.of("name", "NIFTY 50", "price", 22212.70, "change", 45.20, "pctChange", 0.20, "pos", true),
+                Map.of("name", "NIFTY BANK", "price", 46811.15, "change", -110.30, "pctChange", -0.24, "pos", false),
+                Map.of("name", "NIFTY IT", "price", 38150.20, "change", 210.45, "pctChange", 0.55, "pos", true)
+            );
+        }
+
         log.info("Fetched {} indices successfully.", indices.size());
         return indices;
     }

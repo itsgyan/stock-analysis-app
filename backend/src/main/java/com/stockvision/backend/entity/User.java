@@ -28,4 +28,8 @@ public class User {
                joinColumns = @JoinColumn(name = "user_id"), 
                inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @org.hibernate.annotations.CreationTimestamp
+    private java.time.LocalDateTime createdAt;
 }
