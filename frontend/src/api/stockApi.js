@@ -6,7 +6,12 @@ import api from './axios';
  */
 export const getAllStocks = async () => {
   const response = await api.get('/api/stocks');
-  return response.data;
+  return response.data.map(s => ({
+    ...s,
+    currentPrice: s.price,
+    dayHigh: s.high,
+    dayLow: s.low
+  }));
 };
 
 /**

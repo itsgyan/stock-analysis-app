@@ -18,6 +18,16 @@ public class StockController {
     private final AlphaVantageService alphaVantageService;
     private final TechnicalAnalysisService technicalAnalysisService;
 
+    /** Get all available mock stocks for the dashboard */
+    @GetMapping
+    public ResponseEntity<List<StockQuoteDto>> getAllStocks() {
+        String[] symbols = {"AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "JPM", "NFLX", "RELIANCE.BSE", "TCS.BSE"};
+        List<StockQuoteDto> quotes = java.util.Arrays.stream(symbols)
+                .map(alphaVantageService::getMockQuote)
+                .toList();
+        return ResponseEntity.ok(quotes);
+    }
+
     /** Search for stock symbols */
     @GetMapping("/search")
     public ResponseEntity<List<StockSearchResultDto>> search(@RequestParam String query) {
