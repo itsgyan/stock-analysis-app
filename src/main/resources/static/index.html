@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StockIQ — Login & Register</title>
+  <meta name="description" content="Sign in or create an account on StockIQ — your premium stock analysis platform." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===================================================
+       CSS Reset & Variables
+    =================================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #00d4aa;
+      --primary-dark: #00a882;
+      --primary-glow: rgba(0, 212, 170, 0.25);
+      --danger:       #ff4d6d;
+      --danger-glow:  rgba(255, 77, 109, 0.25);
+      --bg-1:         #080e1a;
+      --bg-2:         #0d1527;
+      --bg-3:         #111e38;
+      --glass:        rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --text-1:       #f0f4ff;
+      --text-2:       #8b9cc8;
+      --text-3:       #4a5a7a;
+      --radius:       16px;
+      --transition:   0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-1);
+      color: var(--text-1);
+      overflow-x: hidden;
+    }
+
+    /* ===================================================
+       Animated Background
+    =================================================== */
+    .bg-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .bg-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(0, 212, 170, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(99, 102, 241, 0.10) 0%, transparent 60%),
+        linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 50%, #0a1220 100%);
+    }
+
+    /* Floating particles */
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: var(--primary);
+      opacity: 0;
+      animation: floatUp linear infinite;
+    }
+
+    @keyframes floatUp {
+      0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.6; }
+      90%  { opacity: 0.1; }
+      100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+    }
+
+    /* Grid overlay */
+    .bg-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 212, 170, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 170, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at center, black 30%, transparent 80%);
+    }
+
+    /* Chart ticker strip at bottom */
+    .ticker-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .ticker-content {
+      display: flex;
+      gap: 48px;
+      white-space: nowrap;
+      animation: tickerScroll 30s linear infinite;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    @keyframes tickerScroll {
+      0%   { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    .ticker-item { display: flex; align-items: center; gap: 6px; color: var(--text-2); }
+    .ticker-item .symbol { color: var(--text-1); font-weight: 600; }
+    .ticker-item .up   { color: #00d4aa; }
+    .ticker-item .down { color: #ff4d6d; }
+
+    /* ===================================================
+       Main Layout
+    =================================================== */
+    .page {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px 60px;
+    }
+
+    /* ===================================================
+       Logo
+    =================================================== */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), #00a0f0);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 30px var(--primary-glow), 0 4px 20px rgba(0,0,0,0.4);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg { width: 26px; height: 26px; }
+
+    .logo-text {
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .logo-tagline {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-top: -2px;
+    }
+
+    /* ===================================================
+       Auth Card
+    =================================================== */
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 0 0 1px rgba(0, 212, 170, 0.05),
+        0 24px 80px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      overflow: hidden;
+      animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    /* ===================================================
+       Tab Switcher
+    =================================================== */
+    .tab-bar {
+      display: flex;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 6px;
+      margin: 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: none;
+      border-radius: 12px;
+      color: var(--text-3);
+      font-family: 'Outfit', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      letter-spacing: 0.3px;
+    }
+
+    .tab-btn.active {
+      background: var(--glass);
+      color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 212, 170, 0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .tab-btn:hover:not(.active) { color: var(--text-2); }
+
+    /* ===================================================
+       Form Panel
+    =================================================== */
+    .form-panel { padding: 36px 36px 32px; }
+
+    .form-panel h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 6px;
+      letter-spacing: -0.3px;
+    }
+
+    .form-panel p.subtitle {
+      font-size: 14px;
+      color: var(--text-2);
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    /* ===================================================
+       Form Inputs
+    =================================================== */
+    .form-group { margin-bottom: 18px; position: relative; }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      transition: color var(--transition);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 14px 14px 14px 44px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-1);
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .form-input::placeholder { color: var(--text-3); }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: rgba(0, 212, 170, 0.05);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .form-input:focus ~ .input-icon,
+    .input-wrapper:focus-within .input-icon {
+      color: var(--primary);
+    }
+
+    .input-icon { pointer-events: none; z-index: 1; }
+
+    /* Password toggle */
+    .toggle-pw {
+      position: absolute;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      padding: 4px;
+      transition: color var(--transition);
+    }
+    .toggle-pw:hover { color: var(--primary); }
+
+    /* Error feedback */
+    .field-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 6px;
+      padding-left: 4px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .form-input.is-error { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-glow); }
+
+    /* Password strength */
+    .pw-strength {
+      margin-top: 8px;
+      display: none;
+    }
+
+    .pw-strength.visible { display: block; }
+
+    .pw-bars {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .pw-bar {
+      flex: 1;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--text-3);
+      transition: background 0.3s;
+    }
+
+    .pw-bar.filled-weak   { background: #ff4d6d; }
+    .pw-bar.filled-fair   { background: #f5a623; }
+    .pw-bar.filled-good   { background: #00d4aa; }
+    .pw-bar.filled-strong { background: #00d4aa; }
+
+    .pw-label {
+      font-size: 11px;
+      color: var(--text-3);
+      font-weight: 500;
+    }
+
+    /* Remember / Forgot row */
+    .form-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .checkbox-wrap span {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .link {
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color var(--transition);
+    }
+    .link:hover { color: #fff; }
+
+    /* ===================================================
+       Submit Button
+    =================================================== */
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--primary) 0%, #00a0f0 100%);
+      border: none;
+      border-radius: 12px;
+      color: #000;
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px rgba(0, 212, 170, 0.35);
+      letter-spacing: 0.3px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0, 212, 170, 0.5);
+    }
+
+    .btn-submit:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Ripple effect */
+    .btn-submit::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(rgba(255,255,255,0.15), transparent);
+      border-radius: inherit;
+    }
+
+    /* Loading spinner inside button */
+    .btn-text { display: flex; align-items: center; justify-content: center; gap: 10px; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-submit.loading .spinner { display: block; }
+    .btn-submit.loading .btn-label { opacity: 0.5; }
+
+    /* ===================================================
+       Divider
+    =================================================== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0;
+      color: var(--text-3);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+
+    /* ===================================================
+       Social Buttons
+    =================================================== */
+    .social-row { display: flex; gap: 12px; }
+
+    .btn-social {
+      flex: 1;
+      padding: 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      color: var(--text-2);
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .btn-social:hover {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-1);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    /* ===================================================
+       Toast Notification
+    =================================================== */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      min-width: 300px;
+      max-width: 400px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: toastIn 0.4s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+
+    .toast.success {
+      background: rgba(0, 212, 170, 0.12);
+      border-color: rgba(0, 212, 170, 0.3);
+      color: #00d4aa;
+    }
+
+    .toast.error {
+      background: rgba(255, 77, 109, 0.12);
+      border-color: rgba(255, 77, 109, 0.3);
+      color: #ff4d6d;
+    }
+
+    .toast-icon { font-size: 18px; flex-shrink: 0; }
+    .toast-msg  { flex: 1; color: var(--text-1); }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(30px); }
+    }
+
+    /* ===================================================
+       Terms text
+    =================================================== */
+    .terms-text {
+      font-size: 12px;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 18px;
+      line-height: 1.6;
+    }
+
+    .terms-text .link { font-size: 12px; }
+
+    /* ===================================================
+       Responsive
+    =================================================== */
+    @media (max-width: 480px) {
+      .form-panel { padding: 28px 24px 24px; }
+      .auth-card  { border-radius: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Animated Background ─────────────────────────────────────────────── -->
+<div class="bg-wrapper">
+  <div class="bg-gradient"></div>
+  <div class="bg-grid"></div>
+  <!-- particles generated by JS -->
+</div>
+
+<!-- ─── Toast Container ────────────────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ─── Page Content ──────────────────────────────────────────────────── -->
+<div class="page">
+
+  <!-- Logo -->
+  <a href="#" class="logo" aria-label="StockIQ Home">
+    <div class="logo-icon">
+      <!-- Stock chart SVG icon -->
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">StockIQ</div>
+      <div class="logo-tagline">Market Intelligence</div>
+    </div>
+  </a>
+
+  <!-- Auth Card -->
+  <div class="auth-card" role="main">
+
+    <!-- Tab Bar -->
+    <div class="tab-bar" role="tablist" aria-label="Authentication mode">
+      <button id="tab-login"
+              class="tab-btn active"
+              role="tab"
+              aria-selected="true"
+              aria-controls="panel-login"
+              onclick="switchTab('login')">
+        Sign In
+      </button>
+      <button id="tab-register"
+              class="tab-btn"
+              role="tab"
+              aria-selected="false"
+              aria-controls="panel-register"
+              onclick="switchTab('register')">
+        Create Account
+      </button>
+    </div>
+
+    <!-- ─── LOGIN PANEL ──────────────────────────────────────────────────── -->
+    <div id="panel-login" class="form-panel" role="tabpanel" aria-labelledby="tab-login">
+      <h2>Welcome back 👋</h2>
+      <p class="subtitle">Sign in to access your stock portfolio and analytics.</p>
+
+      <form id="form-login" novalidate onsubmit="handleLogin(event)">
+
+        <!-- Username or Email -->
+        <div class="form-group">
+          <label class="form-label" for="login-user">Username or Email</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input id="login-user"
+                   class="form-input"
+                   type="text"
+                   placeholder="johndoe or john@email.com"
+                   autocomplete="username"
+                   required />
+          </div>
+          <div class="field-error" id="login-user-error">Please enter your username or email.</div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input id="login-password"
+                   class="form-input"
+                   type="password"
+                   placeholder="Enter your password"
+                   autocomplete="current-password"
+                   required />
+            <button type="button" class="toggle-pw" onclick="togglePassword('login-password', this)"
+                    aria-label="Toggle password visibility">
+              <svg id="eye-login" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="field-error" id="login-password-error">Please enter your password.</div>
+        </div>
+
+        <!-- Remember / Forgot -->
+        <div class="form-row">
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="remember-me" />
+            <span>Remember me</span>
+          </label>
+          <a href="#" class="link" onclick="showToast('info', 'Password reset coming soon!')">Forgot password?</a>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="btn-login" class="btn-submit">
+          <span class="btn-text">
+            <span class="spinner"></span>
+            <span class="btn-label">Sign In</span>
+          </span>
+        </button>
+
+      </form>
+
+      <!-- Social -->
+      <div class="divider">or continue with</div>
+      <div class="social-row">
+        <button class="btn-social" onclick="showToast('info', 'Social login coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.198 2.698 1.24 6.65l4.026 3.115z"/><path fill="#34A853" d="M16.04 18.013c-1.09.703-2.474 1.078-4.04 1.078a7.077 7.077 0 0 1-6.723-4.823l-4.04 3.067A11.965 11.965 0 0 0 12 24c2.933 0 5.735-1.043 7.834-3l-3.793-2.987z"/><path fill="#4A90E2" d="M19.834 21c2.195-2.048 3.62-5.096 3.62-9 0-.71-.109-1.473-.272-2.182H12v4.637h6.436c-.317 1.559-1.17 2.766-2.395 3.558L19.834 21z"/><path fill="#FBBC05" d="M5.277 14.268A7.12 7.12 0 0 1 4.909 12c0-.782.125-1.533.357-2.235L1.24 6.65A11.934 11.934 0 0 0 0 12c0 1.92.445 3.73 1.237 5.335l4.04-3.067z"/></svg>
+          Google
+        </button>
+        <button class="btn-social" onclick="showToast('info', 'GitHub login coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── REGISTER PANEL ────────────────────────────────────────────────── -->
+    <div id="panel-register" class="form-panel" role="tabpanel" aria-labelledby="tab-register"
+         style="display:none;">
+      <h2>Create account ✨</h2>
+      <p class="subtitle">Join thousands of investors using StockIQ to make smarter decisions.</p>
+
+      <form id="form-register" novalidate onsubmit="handleRegister(event)">
+
+        <!-- Username -->
+        <div class="form-group">
+          <label class="form-label" for="reg-username">Username</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </span>
+            <input id="reg-username"
+                   class="form-input"
+                   type="text"
+                   placeholder="johndoe"
+                   autocomplete="username"
+                   required
+                   minlength="3"
+                   maxlength="50" />
+          </div>
+          <div class="field-error" id="reg-username-error">Username must be at least 3 characters.</div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+            </span>
+            <input id="reg-email"
+                   class="form-input"
+                   type="email"
+                   placeholder="john@example.com"
+                   autocomplete="email"
+                   required />
+          </div>
+          <div class="field-error" id="reg-email-error">Please enter a valid email address.</div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label class="form-label" for="reg-password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </span>
+            <input id="reg-password"
+                   class="form-input"
+                   type="password"
+                   placeholder="Min. 6 characters"
+                   autocomplete="new-password"
+                   required
+                   minlength="6"
+                   oninput="checkPasswordStrength(this.value)" />
+            <button type="button" class="toggle-pw" onclick="togglePassword('reg-password', this)"
+                    aria-label="Toggle password visibility">
+              <svg id="eye-reg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="field-error" id="reg-password-error">Password must be at least 6 characters.</div>
+
+          <!-- Password Strength Meter -->
+          <div class="pw-strength" id="pw-strength">
+            <div class="pw-bars">
+              <div class="pw-bar" id="pw-bar-1"></div>
+              <div class="pw-bar" id="pw-bar-2"></div>
+              <div class="pw-bar" id="pw-bar-3"></div>
+              <div class="pw-bar" id="pw-bar-4"></div>
+            </div>
+            <div class="pw-label" id="pw-label">Too weak</div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" id="btn-register" class="btn-submit">
+          <span class="btn-text">
+            <span class="spinner"></span>
+            <span class="btn-label">Create Account</span>
+          </span>
+        </button>
+
+        <p class="terms-text">
+          By creating an account you agree to our
+          <a href="#" class="link">Terms of Service</a> and
+          <a href="#" class="link">Privacy Policy</a>.
+        </p>
+
+      </form>
+
+      <!-- Social -->
+      <div class="divider">or sign up with</div>
+      <div class="social-row">
+        <button class="btn-social" onclick="showToast('info', 'Social login coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#EA4335" d="M5.266 9.765A7.077 7.077 0 0 1 12 4.909c1.69 0 3.218.6 4.418 1.582L19.91 3C17.782 1.145 15.055 0 12 0 7.27 0 3.198 2.698 1.24 6.65l4.026 3.115z"/><path fill="#34A853" d="M16.04 18.013c-1.09.703-2.474 1.078-4.04 1.078a7.077 7.077 0 0 1-6.723-4.823l-4.04 3.067A11.965 11.965 0 0 0 12 24c2.933 0 5.735-1.043 7.834-3l-3.793-2.987z"/><path fill="#4A90E2" d="M19.834 21c2.195-2.048 3.62-5.096 3.62-9 0-.71-.109-1.473-.272-2.182H12v4.637h6.436c-.317 1.559-1.17 2.766-2.395 3.558L19.834 21z"/><path fill="#FBBC05" d="M5.277 14.268A7.12 7.12 0 0 1 4.909 12c0-.782.125-1.533.357-2.235L1.24 6.65A11.934 11.934 0 0 0 0 12c0 1.92.445 3.73 1.237 5.335l4.04-3.067z"/></svg>
+          Google
+        </button>
+        <button class="btn-social" onclick="showToast('info', 'GitHub login coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /auth-card -->
+
+</div><!-- /page -->
+
+<!-- ─── Live Ticker Strip ──────────────────────────────────────────────── -->
+<div class="ticker-strip" aria-hidden="true">
+  <div class="ticker-content" id="ticker"></div>
+</div>
+
+<!-- ===================================================
+     JavaScript
+=================================================== -->
+<script>
+  'use strict';
+
+  // ── API Base URL ─────────────────────────────────────────────────────────
+  const API_BASE = '/api/auth';
+
+  // ── Ticker Data ──────────────────────────────────────────────────────────
+  const TICKERS = [
+    { sym: 'AAPL', price: '189.30', change: '+1.24%', up: true },
+    { sym: 'TSLA', price: '248.50', change: '-0.87%', up: false },
+    { sym: 'MSFT', price: '415.72', change: '+0.52%', up: true },
+    { sym: 'AMZN', price: '182.40', change: '+2.10%', up: true },
+    { sym: 'GOOGL', price: '162.85', change: '-0.31%', up: false },
+    { sym: 'NVDA', price: '875.40', change: '+3.45%', up: true },
+    { sym: 'META', price: '490.20', change: '+1.67%', up: true },
+    { sym: 'NFLX', price: '638.10', change: '-1.20%', up: false },
+    { sym: 'BABA', price: '76.50', change: '+0.89%', up: true },
+    { sym: 'JPM',  price: '198.30', change: '+0.43%', up: true },
+  ];
+
+  function buildTicker() {
+    const items = [...TICKERS, ...TICKERS]; // Duplicate for seamless scroll
+    const el = document.getElementById('ticker');
+    el.innerHTML = items.map(t => `
+      <span class="ticker-item">
+        <span class="symbol">${t.sym}</span>
+        <span>${t.price}</span>
+        <span class="${t.up ? 'up' : 'down'}">${t.change}</span>
+      </span>
+    `).join('');
+  }
+
+  buildTicker();
+
+  // ── Floating Particles ───────────────────────────────────────────────────
+  (function spawnParticles() {
+    const wrapper = document.querySelector('.bg-wrapper');
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 4 + 2;
+      p.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        left: ${Math.random() * 100}%;
+        animation-duration: ${Math.random() * 15 + 10}s;
+        animation-delay: ${Math.random() * 10}s;
+        opacity: ${Math.random() * 0.5 + 0.1};
+      `;
+      wrapper.appendChild(p);
+    }
+  })();
+
+  // ── Tab Switching ────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    const panels  = { login: 'panel-login', register: 'panel-register' };
+    const tabs    = { login: 'tab-login',   register: 'tab-register'   };
+
+    Object.entries(panels).forEach(([key, id]) => {
+      const panel = document.getElementById(id);
+      const btn   = document.getElementById(tabs[key]);
+      if (key === tab) {
+        panel.style.display = 'block';
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+        // Animate in
+        panel.style.animation = 'none';
+        panel.offsetHeight; // reflow
+        panel.style.animation = 'cardIn 0.4s cubic-bezier(0.16,1,0.3,1)';
+      } else {
+        panel.style.display = 'none';
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      }
+    });
+    clearAllErrors();
+  }
+
+  // ── Password Visibility Toggle ───────────────────────────────────────────
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+
+    // Update eye icon
+    btn.innerHTML = isHidden
+      ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+           <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+           <line x1="1" y1="1" x2="23" y2="23"/>
+         </svg>`
+      : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+           <circle cx="12" cy="12" r="3"/>
+         </svg>`;
+  }
+
+  // ── Password Strength Meter ───────────────────────────────────────────────
+  function checkPasswordStrength(value) {
+    const meter = document.getElementById('pw-strength');
+    const label = document.getElementById('pw-label');
+    const bars  = [1,2,3,4].map(i => document.getElementById(`pw-bar-${i}`));
+
+    if (!value) { meter.classList.remove('visible'); return; }
+    meter.classList.add('visible');
+
+    let score = 0;
+    if (value.length >= 6)  score++;
+    if (value.length >= 10) score++;
+    if (/[A-Z]/.test(value) && /[a-z]/.test(value)) score++;
+    if (/[0-9]/.test(value) && /[^a-zA-Z0-9]/.test(value)) score++;
+
+    const levels = ['', 'filled-weak', 'filled-fair', 'filled-good', 'filled-strong'];
+    const labels = ['', 'Too weak', 'Fair', 'Good', 'Strong 💪'];
+    const cls    = levels[score] || 'filled-weak';
+
+    bars.forEach((bar, i) => {
+      bar.className = 'pw-bar';
+      if (i < score) bar.classList.add(cls);
+    });
+    label.textContent = labels[score] || 'Too weak';
+  }
+
+  // ── Field Validation Helpers ─────────────────────────────────────────────
+  function showError(inputId, errorId, msg) {
+    const input = document.getElementById(inputId);
+    const err   = document.getElementById(errorId);
+    input.classList.add('is-error');
+    err.textContent = msg;
+    err.style.display = 'block';
+  }
+
+  function clearError(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    const err   = document.getElementById(errorId);
+    input.classList.remove('is-error');
+    err.style.display = 'none';
+  }
+
+  function clearAllErrors() {
+    document.querySelectorAll('.is-error').forEach(el => el.classList.remove('is-error'));
+    document.querySelectorAll('.field-error').forEach(el => el.style.display = 'none');
+  }
+
+  // ── Button Loading State ─────────────────────────────────────────────────
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    btn.disabled = loading;
+    if (loading) btn.classList.add('loading');
+    else         btn.classList.remove('loading');
+  }
+
+  // ── Toast Notification ───────────────────────────────────────────────────
+  function showToast(type, message, duration = 4000) {
+    const container = document.getElementById('toast-container');
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const effectiveType = (type === 'info') ? 'success' : type;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${effectiveType}`;
+    toast.innerHTML = `
+      <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+      <span class="toast-msg">${message}</span>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.animation = 'toastOut 0.4s ease forwards';
+      setTimeout(() => toast.remove(), 400);
+    }, duration);
+  }
+
+  // ── LOGIN HANDLER ─────────────────────────────────────────────────────────
+  async function handleLogin(e) {
+    e.preventDefault();
+    clearAllErrors();
+
+    const usernameOrEmail = document.getElementById('login-user').value.trim();
+    const password        = document.getElementById('login-password').value;
+
+    let valid = true;
+
+    if (!usernameOrEmail) {
+      showError('login-user', 'login-user-error', 'Please enter your username or email.');
+      valid = false;
+    }
+
+    if (!password) {
+      showError('login-password', 'login-password-error', 'Please enter your password.');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    setLoading('btn-login', true);
+
+    try {
+      const res = await fetch(`${API_BASE}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usernameOrEmail, password })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // Store JWT
+        localStorage.setItem('jwt_token', data.token);
+        localStorage.setItem('user', JSON.stringify({
+          username: data.username,
+          email: data.email,
+          role: data.role
+        }));
+
+        showToast('success', `Welcome back, ${data.username}! 🎉`);
+
+        // Redirect to dashboard (update path as needed)
+        setTimeout(() => window.location.href = '/dashboard.html', 1500);
+      } else {
+        showToast('error', data.message || 'Invalid credentials. Please try again.');
+        showError('login-user',     'login-user-error',     ' ');
+        showError('login-password', 'login-password-error', data.message || 'Invalid credentials.');
+      }
+    } catch (err) {
+      showToast('error', 'Unable to connect to the server. Please try again.');
+    } finally {
+      setLoading('btn-login', false);
+    }
+  }
+
+  // ── REGISTER HANDLER ──────────────────────────────────────────────────────
+  async function handleRegister(e) {
+    e.preventDefault();
+    clearAllErrors();
+
+    const username = document.getElementById('reg-username').value.trim();
+    const email    = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value;
+
+    let valid = true;
+
+    if (username.length < 3) {
+      showError('reg-username', 'reg-username-error', 'Username must be at least 3 characters.');
+      valid = false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showError('reg-email', 'reg-email-error', 'Please enter a valid email address.');
+      valid = false;
+    }
+
+    if (password.length < 6) {
+      showError('reg-password', 'reg-password-error', 'Password must be at least 6 characters.');
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    setLoading('btn-register', true);
+
+    try {
+      const res = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+
+      const data = await res.json();
+
+      if (res.status === 201 && data.token) {
+        localStorage.setItem('jwt_token', data.token);
+        localStorage.setItem('user', JSON.stringify({
+          username: data.username,
+          email: data.email,
+          role: data.role
+        }));
+
+        showToast('success', `Account created! Welcome to StockIQ, ${data.username}! 🚀`);
+        setTimeout(() => window.location.href = '/dashboard.html', 1500);
+      } else {
+        showToast('error', data.message || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+      showToast('error', 'Unable to connect to the server. Please try again.');
+    } finally {
+      setLoading('btn-register', false);
+    }
+  }
+
+  // ── Real-time input clearing ──────────────────────────────────────────────
+  ['login-user', 'login-password', 'reg-username', 'reg-email', 'reg-password'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        el.classList.remove('is-error');
+        const errId = id.replace('-', '-').replace('login-', 'login-').replace('reg-', 'reg-') + '-error';
+        // Try to find and hide associated error
+        const err = el.closest('.form-group')?.querySelector('.field-error');
+        if (err) err.style.display = 'none';
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

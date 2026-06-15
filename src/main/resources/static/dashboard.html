@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Stock Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --sidebar-width: 250px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .search-container {
+            position: relative;
+            width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            outline: none;
+            backdrop-filter: blur(4px);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            backdrop-filter: blur(12px);
+            z-index: 20;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .search-result-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+        .search-result-item:hover {
+            background: rgba(255,255,255,0.05);
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .stat-label { color: var(--text-muted); font-size: 0.875rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 600; }
+        
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        th {
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        
+        .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            📈 Antigravity
+        </div>
+        <div class="nav-link active" onclick="switchView('analysis-view')">📊 Stock Analysis</div>
+        <div class="nav-link" onclick="switchView('watchlist-view'); loadWatchlist();">⭐ Watchlist</div>
+        <div class="nav-link" onclick="switchView('portfolio-view'); loadPortfolio();">💼 Portfolio</div>
+        <div class="nav-link" onclick="switchView('screener-view')">🔍 Screener</div>
+        <div class="nav-link" onclick="switchView('news-view'); loadNews();">📰 Market News</div>
+        
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="topbar">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search symbol or company..." autocomplete="off">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+            <div id="userInfo" style="font-weight: 500;"></div>
+        </div>
+
+        <!-- Analysis View -->
+        <div id="analysis-view" class="view-section active">
+            <h2 id="stockTitle" style="margin-bottom: 1.5rem;">Select a stock to analyze</h2>
+            
+            <div class="grid-4 mb-4" id="quoteData" style="display:none; margin-bottom: 1.5rem;">
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Current Price</span>
+                    <span class="stat-value" id="priceVal">--</span>
+                </div>
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Change</span>
+                    <span class="stat-value" id="changeVal">--</span>
+                </div>
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Volume</span>
+                    <span class="stat-value" id="volVal">--</span>
+                </div>
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Market Cap</span>
+                    <span class="stat-value" id="mcapVal">--</span>
+                </div>
+            </div>
+
+            <div class="glass-card" id="chartCard" style="display:none;">
+                <h3>Price Chart & Technicals</h3>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-primary btn-sm" onclick="addToWatchlist(currentSymbol)">+ Watchlist</button>
+                    <button class="btn btn-primary btn-sm" onclick="promptPortfolioAdd()">+ Portfolio</button>
+                </div>
+            </div>
+            
+            <div class="grid-2" id="detailsData" style="display:none;">
+                <div class="glass-card">
+                    <h3 style="margin-bottom:1rem;">Fundamentals</h3>
+                    <table id="fundamentalTable">
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="glass-card">
+                    <h3 style="margin-bottom:1rem;">Company Profile</h3>
+                    <p id="companyDesc" style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;"></p>
+                    <table id="profileTable">
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Watchlist View -->
+        <div id="watchlist-view" class="view-section">
+            <h2 style="margin-bottom: 1.5rem;">My Watchlist</h2>
+            <div class="glass-card">
+                <table id="watchlistTable">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Company</th>
+                            <th>Price</th>
+                            <th>Change</th>
+                            <th>Added</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Portfolio View -->
+        <div id="portfolio-view" class="view-section">
+            <h2 style="margin-bottom: 1.5rem;">My Portfolio</h2>
+            <div class="grid-3" style="margin-bottom: 1.5rem;" id="portfolioSummary">
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Total Invested</span>
+                    <span class="stat-value" id="portInvested">--</span>
+                </div>
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Current Value</span>
+                    <span class="stat-value" id="portValue">--</span>
+                </div>
+                <div class="glass-card stat-card">
+                    <span class="stat-label">Total P&L</span>
+                    <span class="stat-value" id="portPnL">--</span>
+                </div>
+            </div>
+            <div class="glass-card">
+                <table id="portfolioTable">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Qty</th>
+                            <th>Buy Price</th>
+                            <th>Current Price</th>
+                            <th>Value</th>
+                            <th>P&L</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- News View -->
+        <div id="news-view" class="view-section">
+            <h2 style="margin-bottom: 1.5rem;">Market News</h2>
+            <div id="newsContainer" class="grid-2"></div>
+        </div>
+
+        <!-- Screener View -->
+        <div id="screener-view" class="view-section">
+            <h2 style="margin-bottom: 1.5rem;">Stock Screener</h2>
+            <div class="glass-card" style="display:flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <button class="btn btn-primary" onclick="runScreener('value')">Value Stocks</button>
+                <button class="btn btn-primary" onclick="runScreener('growth')">Growth Stocks</button>
+                <button class="btn btn-primary" onclick="runScreener('dividend')">High Dividend</button>
+                <button class="btn btn-primary" onclick="runScreener('largecap')">Large Cap</button>
+            </div>
+            <div class="glass-card">
+                <table id="screenerTable">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Name</th>
+                            <th>Sector</th>
+                            <th>Market Cap</th>
+                            <th>P/E</th>
+                            <th>Div Yield</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let token = localStorage.getItem('token');
+        let currentSymbol = '';
+        let mainChartInstance = null;
+
+        if (!token) {
+            window.location.href = '/index.html';
+        }
+
+        // Setup Headers
+        const getHeaders = () => ({
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        });
+
+        // Initialize User
+        fetch(`${API_BASE}/user/me`, { headers: getHeaders() })
+            .then(res => {
+                if(!res.ok) throw new Error("Auth failed");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('userInfo').textContent = `Welcome, ${data.username}`;
+            })
+            .catch(() => {
+                logout();
+            });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/index.html';
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // WebSocket for Live Prices
+        const socket = new SockJS('/ws');
+        const stompClient = Stomp.over(socket);
+        stompClient.debug = null;
+        stompClient.connect({}, function (frame) {
+            stompClient.subscribe('/topic/prices', function (message) {
+                const data = JSON.parse(message.body);
+                updateLivePrice(data);
+            });
+        });
+
+        function updateLivePrice(data) {
+            if(data.symbol === currentSymbol) {
+                const el = document.getElementById('priceVal');
+                if(el) {
+                    el.textContent = `$${data.price.toFixed(2)}`;
+                    el.style.color = data.price > parseFloat(el.dataset.prev || 0) ? 'var(--success)' : 'var(--danger)';
+                    el.dataset.prev = data.price;
+                    setTimeout(() => el.style.color = '', 1000);
+                }
+            }
+        }
+
+        // Search Autocomplete
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            if(query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+            searchTimeout = setTimeout(() => {
+                fetch(`${API_BASE}/stocks/search?query=${query}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        searchResults.innerHTML = '';
+                        data.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'search-result-item';
+                            div.innerHTML = `<span><strong>${item.symbol}</strong></span> <span>${item.name}</span>`;
+                            div.onclick = () => {
+                                loadStockData(item.symbol);
+                                searchResults.style.display = 'none';
+                                searchInput.value = item.symbol;
+                                switchView('analysis-view');
+                            };
+                            searchResults.appendChild(div);
+                        });
+                        searchResults.style.display = data.length ? 'block' : 'none';
+                    });
+            }, 300);
+        });
+
+        document.addEventListener('click', e => {
+            if(!e.target.closest('.search-container')) searchResults.style.display = 'none';
+        });
+
+        // Load Stock Analysis
+        async function loadStockData(symbol) {
+            currentSymbol = symbol;
+            document.getElementById('stockTitle').textContent = `Loading ${symbol}...`;
+            
+            try {
+                // Quote
+                const quoteRes = await fetch(`${API_BASE}/stocks/${symbol}/quote`);
+                const quote = await quoteRes.json();
+                
+                document.getElementById('stockTitle').textContent = `${quote.companyName || symbol} (${symbol})`;
+                document.getElementById('quoteData').style.display = 'grid';
+                document.getElementById('priceVal').textContent = `$${quote.price.toFixed(2)}`;
+                document.getElementById('priceVal').dataset.prev = quote.price;
+                const changeColor = quote.change >= 0 ? 'var(--success)' : 'var(--danger)';
+                const sign = quote.change >= 0 ? '+' : '';
+                document.getElementById('changeVal').innerHTML = `<span style="color:${changeColor}">${sign}${quote.change.toFixed(2)} (${quote.changePercent}%)</span>`;
+                document.getElementById('volVal').textContent = quote.volume ? quote.volume.toLocaleString() : 'N/A';
+                document.getElementById('mcapVal').textContent = quote.marketCap ? formatNumber(quote.marketCap) : 'N/A';
+
+                // Profile & Fundamentals
+                const profRes = await fetch(`${API_BASE}/stocks/${symbol}/profile`);
+                const profile = await profRes.json();
+                
+                const fundRes = await fetch(`${API_BASE}/stocks/${symbol}/fundamentals`);
+                const fund = await fundRes.json();
+
+                document.getElementById('detailsData').style.display = 'grid';
+                document.getElementById('companyDesc').textContent = profile.description || 'No description available.';
+                
+                document.getElementById('profileTable').innerHTML = `
+                    <tr><th>Sector</th><td>${profile.sector || '-'}</td></tr>
+                    <tr><th>Industry</th><td>${profile.industry || '-'}</td></tr>
+                    <tr><th>CEO</th><td>${profile.ceo || '-'}</td></tr>
+                `;
+
+                document.getElementById('fundamentalTable').innerHTML = `
+                    <tr><th>P/E Ratio</th><td>${fund.peRatio?.toFixed(2) || '-'}</td></tr>
+                    <tr><th>EPS</th><td>${fund.eps?.toFixed(2) || '-'}</td></tr>
+                    <tr><th>Dividend Yield</th><td>${fund.dividendYield ? (fund.dividendYield*100).toFixed(2)+'%' : '-'}</td></tr>
+                    <tr><th>Beta</th><td>${fund.beta?.toFixed(2) || '-'}</td></tr>
+                `;
+
+                // Technicals (Chart)
+                const techRes = await fetch(`${API_BASE}/stocks/${symbol}/technical`);
+                const tech = await techRes.json();
+                
+                document.getElementById('chartCard').style.display = 'block';
+                renderChart(tech);
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('stockTitle').textContent = `Error loading data for ${symbol}`;
+            }
+        }
+
+        function formatNumber(num) {
+            if(num >= 1e9) return (num/1e9).toFixed(2) + 'B';
+            if(num >= 1e6) return (num/1e6).toFixed(2) + 'M';
+            return num.toLocaleString();
+        }
+
+        function renderChart(techData) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if(mainChartInstance) mainChartInstance.destroy();
+
+            mainChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: techData.dates,
+                    datasets: [
+                        {
+                            label: 'Price',
+                            data: techData.closePrices,
+                            borderColor: '#3b82f6',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'SMA 20',
+                            data: techData.sma20Series,
+                            borderColor: '#f59e0b',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8' } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        // Watchlist
+        async function loadWatchlist() {
+            const res = await fetch(`${API_BASE}/watchlist`, { headers: getHeaders() });
+            const data = await res.json();
+            const tbody = document.querySelector('#watchlistTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const color = item.change >= 0 ? 'var(--success)' : 'var(--danger)';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="cursor:pointer; color:var(--primary)" onclick="loadStockData('${item.symbol}'); switchView('analysis-view')">${item.symbol}</td>
+                    <td>${item.companyName || '-'}</td>
+                    <td>$${(item.currentPrice||0).toFixed(2)}</td>
+                    <td style="color:${color}">${(item.change||0).toFixed(2)} (${(item.changePercent||0).toFixed(2)}%)</td>
+                    <td>${new Date(item.addedAt).toLocaleDateString()}</td>
+                    <td><button class="btn btn-sm" style="background:rgba(239,68,68,0.2);color:var(--danger)" onclick="removeFromWatchlist(${item.id})">Remove</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function addToWatchlist(symbol) {
+            if(!symbol) return;
+            await fetch(`${API_BASE}/watchlist?symbol=${symbol}`, { method: 'POST', headers: getHeaders() });
+            alert(`${symbol} added to watchlist!`);
+        }
+
+        async function removeFromWatchlist(id) {
+            await fetch(`${API_BASE}/watchlist/${id}`, { method: 'DELETE', headers: getHeaders() });
+            loadWatchlist();
+        }
+
+        // Portfolio
+        async function loadPortfolio() {
+            const res = await fetch(`${API_BASE}/portfolio`, { headers: getHeaders() });
+            const data = await res.json();
+            
+            const sumRes = await fetch(`${API_BASE}/portfolio/summary`, { headers: getHeaders() });
+            const sum = await sumRes.json();
+            
+            document.getElementById('portInvested').textContent = `$${(sum.totalInvested||0).toFixed(2)}`;
+            document.getElementById('portValue').textContent = `$${(sum.currentValue||0).toFixed(2)}`;
+            const pnlColor = sum.totalProfitLoss >= 0 ? 'var(--success)' : 'var(--danger)';
+            document.getElementById('portPnL').innerHTML = `<span style="color:${pnlColor}">$${(sum.totalProfitLoss||0).toFixed(2)} (${(sum.totalProfitLossPercent||0).toFixed(2)}%)</span>`;
+
+            const tbody = document.querySelector('#portfolioTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const color = item.profitLoss >= 0 ? 'var(--success)' : 'var(--danger)';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="cursor:pointer; color:var(--primary)" onclick="loadStockData('${item.symbol}'); switchView('analysis-view')">${item.symbol}</td>
+                    <td>${item.quantity}</td>
+                    <td>$${item.buyPrice.toFixed(2)}</td>
+                    <td>$${item.currentPrice.toFixed(2)}</td>
+                    <td>$${item.currentValue.toFixed(2)}</td>
+                    <td style="color:${color}">$${item.profitLoss.toFixed(2)}</td>
+                    <td><button class="btn btn-sm" style="background:rgba(239,68,68,0.2);color:var(--danger)" onclick="removeFromPortfolio(${item.id})">Sell</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function promptPortfolioAdd() {
+            if(!currentSymbol) return;
+            const qty = prompt("Enter quantity:");
+            if(!qty || isNaN(qty)) return;
+            const price = prompt("Enter buy price (leave blank for current market price):");
+            
+            const payload = {
+                symbol: currentSymbol,
+                quantity: parseFloat(qty),
+                buyPrice: price ? parseFloat(price) : null
+            };
+            
+            await fetch(`${API_BASE}/portfolio`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
+            });
+            alert(`${currentSymbol} added to portfolio!`);
+        }
+
+        async function removeFromPortfolio(id) {
+            await fetch(`${API_BASE}/portfolio/${id}`, { method: 'DELETE', headers: getHeaders() });
+            loadPortfolio();
+        }
+
+        // Screener
+        async function runScreener(preset) {
+            const res = await fetch(`${API_BASE}/screener/preset/${preset}`);
+            const data = await res.json();
+            const tbody = document.querySelector('#screenerTable tbody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="cursor:pointer; color:var(--primary)" onclick="loadStockData('${item.symbol}'); switchView('analysis-view')">${item.symbol}</td>
+                    <td>${item.name}</td>
+                    <td>${item.sector || '-'}</td>
+                    <td>${item.marketCap ? formatNumber(item.marketCap) : '-'}</td>
+                    <td>${item.peRatio ? item.peRatio.toFixed(2) : '-'}</td>
+                    <td>${item.dividendYield ? (item.dividendYield*100).toFixed(2)+'%' : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // News
+        async function loadNews() {
+            const res = await fetch(`${API_BASE}/news?limit=10`);
+            const data = await res.json();
+            const cont = document.getElementById('newsContainer');
+            cont.innerHTML = '';
+            data.forEach(item => {
+                const badgeColor = item.sentiment === 'Bullish' ? 'var(--success)' : item.sentiment === 'Bearish' ? 'var(--danger)' : 'var(--text-muted)';
+                cont.innerHTML += `
+                    <div class="glass-card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+                            <span style="font-size:0.875rem; color:var(--text-muted)">${item.source}</span>
+                            <span style="font-size:0.75rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); color: ${badgeColor}">${item.sentiment}</span>
+                        </div>
+                        <h4 style="margin-bottom: 0.5rem;"><a href="${item.url}" target="_blank" style="color:var(--text-main); text-decoration:none;">${item.title}</a></h4>
+                        <p style="font-size:0.875rem; color:var(--text-muted); line-height: 1.5;">${item.summary}</p>
+                    </div>
+                `;
+            });
+        }
+
+        // Initial Load
+        loadStockData('AAPL');
+
+    </script>
+</body>
+</html>
