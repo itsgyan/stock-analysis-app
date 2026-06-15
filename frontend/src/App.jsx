@@ -6,6 +6,8 @@ import Layout from './components/Layout';
 
 import PrivateRoute from './components/PrivateRoute';
 
+import PageTitleUpdater from './components/PageTitleUpdater';
+
 // Implement route-level code splitting
 const Home = React.lazy(() => import('./pages/Home'));
 const Login = React.lazy(() => import('./pages/Login'));
@@ -28,7 +30,8 @@ function App() {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-orange-500 font-bold">Loading StockVision Core...</div>}>
+        <PageTitleUpdater />
+        <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-orange-500 font-bold">Loading MarketLens Core...</div>}>
           <Routes>
             <Route path="/" element={<Layout />}>
               {/* Public Routes */}

@@ -46,7 +46,7 @@ const Register = () => {
           <h2 className="text-2xl font-bold text-slate-800">
             Create an Account
           </h2>
-          <p className="text-sm text-slate-500 mt-2">Join StockVision today</p>
+          <p className="text-sm text-slate-500 mt-2">Join MarketLens today</p>
         </div>
 
         {error && (

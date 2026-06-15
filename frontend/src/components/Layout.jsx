@@ -192,7 +192,7 @@ const Layout = () => {
             <Menu size={24} className="cursor-pointer hover:text-orange-400" />
             <Link to="/dashboard" className="text-2xl font-black tracking-tighter text-white flex items-center gap-1 md:border-r md:border-slate-600 md:pr-6">
               <Activity className="text-orange-500" size={28} />
-              Stock<span className="text-orange-500">Vision</span>
+              Market<span className="text-orange-500">Lens</span>
             </Link>
           </div>
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
@@ -223,7 +223,7 @@ const Layout = () => {
       
       {/* Footer */}
       <footer className="bg-[#202b36] text-slate-400 text-xs py-8 px-4 text-center mt-12 border-t-4 border-orange-500">
-        <p>Copyright © 2026 StockVision. All rights reserved.</p>
+        <p>Copyright © 2026 MarketLens. All rights reserved.</p>
         <p className="mt-2">Data is delayed by at least 15 minutes. For informational purposes only.</p>
       </footer>
     </div>
