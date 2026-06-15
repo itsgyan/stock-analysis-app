@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/stocks")
+@RequestMapping("/api/stocks")
 @RequiredArgsConstructor
 public class StockController {
 
@@ -92,7 +92,8 @@ public class StockController {
     @GetMapping("/news")
     public ResponseEntity<List<NewsItemDto>> getMarketNews(
             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(alphaVantageService.getMockNews());
+        // Fetch news for major Indian companies to get Indian market news
+        return ResponseEntity.ok(alphaVantageService.getNewsSentiment("RELIANCE.BSE,TCS.BSE,INFY.BSE,HDFCBANK.BSE,SBIN.BSE", limit));
     }
 
     /** Multi-quote for dashboard */

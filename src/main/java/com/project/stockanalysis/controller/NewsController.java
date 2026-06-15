@@ -13,7 +13,7 @@ import java.util.List;
  * Base path: /api/news
  */
 @RestController
-@RequestMapping("/news")
+@RequestMapping("/api/news")
 @RequiredArgsConstructor
 public class NewsController {
 

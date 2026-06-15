@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/screener")
+@RequestMapping("/api/screener")
 @RequiredArgsConstructor
 public class ScreenerController {
 

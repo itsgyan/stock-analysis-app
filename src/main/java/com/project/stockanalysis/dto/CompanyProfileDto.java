@@ -25,4 +25,5 @@ public class CompanyProfileDto {
     private Double dividendYield;
     private Double dividendPerShare;
     private Double exDividendDate;
+    private Long marketCap;
 }

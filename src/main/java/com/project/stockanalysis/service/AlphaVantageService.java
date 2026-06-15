@@ -104,6 +104,7 @@ public class AlphaVantageService {
                     .latestQuarter(str(data, "LatestQuarter"))
                     .dividendYield(parseDouble(str(data, "DividendYield")))
                     .dividendPerShare(parseDouble(str(data, "DividendPerShare")))
+                    .marketCap(parseLong(str(data, "MarketCapitalization")))
                     .build();
         } catch (Exception e) {
             log.error("Error fetching company profile for {}", symbol, e);
@@ -290,17 +291,30 @@ public class AlphaVantageService {
     private List<StockSearchResultDto> getMockSearchResults(String query) {
         List<StockSearchResultDto> results = new ArrayList<>();
         String[][] stocks = {
-            {"AAPL","Apple Inc."},{"MSFT","Microsoft Corp"},{"GOOGL","Alphabet Inc"},
-            {"AMZN","Amazon.com Inc"},{"TSLA","Tesla Inc"},{"META","Meta Platforms"},
-            {"NVDA","NVIDIA Corporation"},{"JPM","JPMorgan Chase"},{"NFLX","Netflix Inc"},
-            {"BABA","Alibaba Group"}
+            {"AAPL","Apple Inc.","NASDAQ"},
+            {"MSFT","Microsoft Corp","NASDAQ"},
+            {"GOOGL","Alphabet Inc","NASDAQ"},
+            {"AMZN","Amazon.com Inc","NASDAQ"},
+            {"TSLA","Tesla Inc","NASDAQ"},
+            {"META","Meta Platforms","NASDAQ"},
+            {"NVDA","NVIDIA Corporation","NASDAQ"},
+            {"JPM","JPMorgan Chase","NYSE"},
+            {"NFLX","Netflix Inc","NASDAQ"},
+            {"BABA","Alibaba Group","NYSE"},
+            {"RELIANCE.BSE","Reliance Industries","BSE"},
+            {"TCS.BSE","Tata Consultancy Services","BSE"},
+            {"INFY.BSE","Infosys Limited","BSE"},
+            {"HDFCBANK.BSE","HDFC Bank","BSE"},
+            {"RELIANCE.NSE","Reliance Industries","NSE"},
+            {"TCS.NSE","Tata Consultancy Services","NSE"},
+            {"INFY.NSE","Infosys Limited","NSE"}
         };
         for (String[] s : stocks) {
             if (s[0].toUpperCase().contains(query.toUpperCase()) ||
                 s[1].toUpperCase().contains(query.toUpperCase())) {
                 results.add(StockSearchResultDto.builder()
                         .symbol(s[0]).name(s[1]).type("Equity")
-                        .region("United States").currency("USD").exchange("NASDAQ").build());
+                        .region("India/US").currency("INR/USD").exchange(s[2]).build());
             }
         }
         if (results.isEmpty() && !query.isEmpty()) {
@@ -316,22 +330,39 @@ public class AlphaVantageService {
     public StockQuoteDto getMockQuote(String symbol) {
         Random r = new Random(symbol.hashCode());
         double base = 100 + r.nextDouble() * 900;
+        
+        String currency = "USD";
+        String exchange = "NASDAQ";
+        if (symbol.toUpperCase().endsWith(".BSE")) {
+            currency = "INR";
+            exchange = "BSE";
+            base *= 80; // Scale up for INR
+        } else if (symbol.toUpperCase().endsWith(".NSE")) {
+            currency = "INR";
+            exchange = "NSE";
+            base *= 80; // Scale up for INR
+        }
+
         double change = (r.nextDouble() - 0.45) * 10;
+        if (currency.equals("INR")) {
+            change *= 80;
+        }
+
         return StockQuoteDto.builder()
                 .symbol(symbol)
-                .companyName(symbol + " Corporation")
+                .companyName(symbol.split("\\.")[0] + " Corporation")
                 .price(Math.round(base * 100.0) / 100.0)
                 .change(Math.round(change * 100.0) / 100.0)
                 .changePercent(Math.round((change / base * 100) * 100.0) / 100.0)
-                .open(Math.round((base - r.nextDouble() * 5) * 100.0) / 100.0)
-                .high(Math.round((base + r.nextDouble() * 8) * 100.0) / 100.0)
-                .low(Math.round((base - r.nextDouble() * 8) * 100.0) / 100.0)
+                .open(Math.round((base - (r.nextDouble() * 5 * (currency.equals("INR") ? 80 : 1))) * 100.0) / 100.0)
+                .high(Math.round((base + (r.nextDouble() * 8 * (currency.equals("INR") ? 80 : 1))) * 100.0) / 100.0)
+                .low(Math.round((base - (r.nextDouble() * 8 * (currency.equals("INR") ? 80 : 1))) * 100.0) / 100.0)
                 .previousClose(Math.round((base - change) * 100.0) / 100.0)
                 .volume((long)(r.nextDouble() * 50_000_000 + 1_000_000))
                 .marketCap((long)(base * (r.nextDouble() * 5_000_000_000L + 1_000_000_000L)))
                 .week52High(Math.round((base * 1.3) * 100.0) / 100.0)
                 .week52Low(Math.round((base * 0.7) * 100.0) / 100.0)
-                .currency("USD").exchange("NASDAQ").marketOpen(true)
+                .currency(currency).exchange(exchange).marketOpen(true)
                 .lastUpdated(LocalDate.now().toString())
                 .build();
     }
@@ -352,9 +383,17 @@ public class AlphaVantageService {
                 new String[]{symbol + " Corporation", "Technology", "Technology", "John Doe", "New York, NY",
                         "A leading technology company providing innovative solutions."});
         return CompanyProfileDto.builder()
-                .symbol(symbol).name(p[0]).sector(p[1]).industry(p[2]).ceo(p[3]).address(p[4]).description(p[5])
-                .country("United States").currency("USD").exchange("NASDAQ")
-                .dividendYield(0.5).dividendPerShare(0.92)
+                .symbol(symbol)
+                .name(p[0])
+                .sector(p[1])
+                .industry(p[2])
+                .ceo(p[3])
+                .address(p[4])
+                .description(p[5])
+                .exchange(symbol.endsWith(".BSE") ? "BSE" : (symbol.endsWith(".NSE") ? "NSE" : "NASDAQ"))
+                .currency(symbol.endsWith(".BSE") || symbol.endsWith(".NSE") ? "INR" : "USD")
+                .dividendYield(0.015)
+                .marketCap(150000000000L)
                 .build();
     }
 

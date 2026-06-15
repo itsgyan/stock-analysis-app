@@ -1093,7 +1093,7 @@
 
       if (res.ok && data.token) {
         // Store JWT
-        localStorage.setItem('jwt_token', data.token);
+        localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({
           username: data.username,
           email: data.email,
@@ -1157,7 +1157,7 @@
       const data = await res.json();
 
       if (res.status === 201 && data.token) {
-        localStorage.setItem('jwt_token', data.token);
+        localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({
           username: data.username,
           email: data.email,
