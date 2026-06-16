@@ -31,6 +31,7 @@ class AlphaVantageServiceTest {
     void setUp() {
         ReflectionTestUtils.setField(alphaVantageService, "apiKey", "demo");
         ReflectionTestUtils.setField(alphaVantageService, "baseUrl", "https://www.alphavantage.co/query");
+        ReflectionTestUtils.setField(alphaVantageService, "liveEnabled", true);
     }
 
     @Test
@@ -77,6 +78,17 @@ class AlphaVantageServiceTest {
         assertNotNull(result);
         // Symbol should be MSFT and price should be randomly generated fallback > 0
         assertEquals("MSFT", result.getSymbol());
+        assertTrue(result.getPrice() > 0);
+    }
+
+    @Test
+    void testGetGlobalQuote_UsesMockWhenLiveDisabled() {
+        ReflectionTestUtils.setField(alphaVantageService, "liveEnabled", false);
+
+        StockQuoteDto result = alphaVantageService.getGlobalQuote("AAPL");
+
+        assertNotNull(result);
+        assertEquals("AAPL", result.getSymbol());
         assertTrue(result.getPrice() > 0);
     }
 }

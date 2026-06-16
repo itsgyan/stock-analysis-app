@@ -54,6 +54,7 @@ const SearchBar = memo(() => {
   const [filteredResults, setFilteredResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
+  const searchAbortRef = useRef(null);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -64,17 +65,23 @@ const SearchBar = memo(() => {
     // Debounce API calls by 300ms
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
+      searchAbortRef.current?.abort();
+      const controller = new AbortController();
+      searchAbortRef.current = controller;
       setIsSearching(true);
       try {
-        const stocks = await searchStocksApi(searchQuery);
+        const stocks = await searchStocksApi(searchQuery, { signal: controller.signal });
         // Map backend Stock objects to the shape the dropdown expects
         const mapped = stocks.map((s) => ({
-          name: s.companyName,
+          name: s.companyName || s.name || s.symbol,
           type: 'Stock',
           ticker: s.symbol,
         }));
         setFilteredResults(mapped.length > 0 ? mapped : []);
-      } catch {
+      } catch (error) {
+        if (error.name === 'CanceledError' || error.name === 'AbortError') {
+          return;
+        }
         // API failed — fall back to local filtering
         const lowerQuery = searchQuery.toLowerCase();
         setFilteredResults(
@@ -89,7 +96,10 @@ const SearchBar = memo(() => {
       }
     }, 300);
 
-    return () => clearTimeout(debounceRef.current);
+    return () => {
+      clearTimeout(debounceRef.current);
+      searchAbortRef.current?.abort();
+    };
   }, [searchQuery]);
 
   const handleSelectSearch = (item) => {

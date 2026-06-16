@@ -25,8 +25,15 @@ public class AlphaVantageService {
     @Value("${alphavantage.api.base-url}")
     private String baseUrl;
 
+    @Value("${alphavantage.live-enabled:false}")
+    private boolean liveEnabled;
+
     // ─── Symbol Search ────────────────────────────────────────────────────────
     public List<StockSearchResultDto> searchSymbols(String query) {
+        if (!liveEnabled) {
+            return getMockSearchResults(query);
+        }
+
         try {
             String url = buildUrl("SYMBOL_SEARCH", null) + "&keywords=" + query;
             Map<String, Object> response = callApi(url);
@@ -50,6 +57,10 @@ public class AlphaVantageService {
 
     // ─── Global Quote ─────────────────────────────────────────────────────────
     public StockQuoteDto getGlobalQuote(String symbol) {
+        if (!liveEnabled) {
+            return getMockQuote(symbol);
+        }
+
         try {
             String url = buildUrl("GLOBAL_QUOTE", symbol);
             Map<String, Object> response = callApi(url);
@@ -85,6 +96,10 @@ public class AlphaVantageService {
 
     // ─── Company Overview ─────────────────────────────────────────────────────
     public CompanyProfileDto getCompanyProfile(String symbol) {
+        if (!liveEnabled) {
+            return getMockProfile(symbol);
+        }
+
         try {
             String url = buildUrl("OVERVIEW", symbol);
             Map<String, Object> data = callApi(url);
@@ -114,6 +129,10 @@ public class AlphaVantageService {
 
     // ─── Fundamental Data ─────────────────────────────────────────────────────
     public FundamentalDataDto getFundamentalData(String symbol) {
+        if (!liveEnabled) {
+            return getMockFundamentals(symbol);
+        }
+
         try {
             String url = buildUrl("OVERVIEW", symbol);
             Map<String, Object> data = callApi(url);
@@ -150,6 +169,10 @@ public class AlphaVantageService {
 
     // ─── Daily Time Series ────────────────────────────────────────────────────
     public Map<String, Object> getDailyTimeSeries(String symbol, int outputSize) {
+        if (!liveEnabled) {
+            return getMockTimeSeries(symbol);
+        }
+
         try {
             String size = outputSize > 100 ? "full" : "compact";
             String url = buildUrl("TIME_SERIES_DAILY", symbol) + "&outputsize=" + size;
@@ -163,6 +186,10 @@ public class AlphaVantageService {
 
     // ─── Financial Statements ─────────────────────────────────────────────────
     public FinancialStatementDto getIncomeStatement(String symbol, String period) {
+        if (!liveEnabled) {
+            return getMockIncomeStatement(symbol, period);
+        }
+
         try {
             String url = buildUrl("INCOME_STATEMENT", symbol);
             Map<String, Object> data = callApi(url);
@@ -174,6 +201,10 @@ public class AlphaVantageService {
     }
 
     public FinancialStatementDto getBalanceSheet(String symbol, String period) {
+        if (!liveEnabled) {
+            return getMockBalanceSheet(symbol, period);
+        }
+
         try {
             String url = buildUrl("BALANCE_SHEET", symbol);
             Map<String, Object> data = callApi(url);
@@ -185,6 +216,10 @@ public class AlphaVantageService {
     }
 
     public FinancialStatementDto getCashFlow(String symbol, String period) {
+        if (!liveEnabled) {
+            return getMockCashFlow(symbol, period);
+        }
+
         try {
             String url = buildUrl("CASH_FLOW", symbol);
             Map<String, Object> data = callApi(url);
@@ -197,6 +232,10 @@ public class AlphaVantageService {
 
     // ─── News Sentiment ───────────────────────────────────────────────────────
     public List<NewsItemDto> getNewsSentiment(String symbols, int limit) {
+        if (!liveEnabled) {
+            return getMockNews().stream().limit(limit).collect(Collectors.toList());
+        }
+
         try {
             String url = buildUrl("NEWS_SENTIMENT", null)
                     + "&tickers=" + symbols
