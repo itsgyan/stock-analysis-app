@@ -1,5 +1,3 @@
-import React from 'react';
-
 const IndexRow = ({ name, price, change, pctChange, pos }) => (
   <tr className="border-b border-slate-200 hover:bg-slate-50 cursor-pointer">
     <td className="px-4 py-3 font-bold text-blue-700">{name}</td>

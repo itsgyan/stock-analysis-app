@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 
 const FundRow = ({ name, category, nav, oneYear, threeYear, fiveYear, rating }) => (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const FundRow = ({ name, nav, oneYear, threeYear, fiveYear, rating }) => (
   <tr className="border-b border-slate-200 hover:bg-slate-50 cursor-pointer">

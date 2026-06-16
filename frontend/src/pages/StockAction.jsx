@@ -1,5 +1,3 @@
-import React from 'react';
-
 const StockAction = () => {
   const volumes = [
     { name: 'Vodafone Idea', vol: '45.2 Cr', price: '12.45', pos: true },

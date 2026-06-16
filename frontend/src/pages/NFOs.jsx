@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const NFOs = () => {
   const [nfos, setNfos] = useState([]);
@@ -20,7 +20,7 @@ const NFOs = () => {
           ]);
           setIsLoading(false);
         }, 700);
-      } catch (err) {
+      } catch {
         console.error("Failed to fetch daily NFOs");
         setIsLoading(false);
       }

@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { TrendingUp, TrendingDown, Star } from 'lucide-react';
 import { getAllStocks } from '../api/stockApi';
+import api from '../api/axios';
 
 const StockDetail = () => {
   const { ticker } = useParams();
   const [stock, setStock] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isWatched, setIsWatched] = useState(false);
+  const [isUpdatingWatchlist, setIsUpdatingWatchlist] = useState(false);
 
   useEffect(() => {
     const fetchStock = async () => {
@@ -31,6 +34,24 @@ const StockDetail = () => {
     };
 
     fetchStock();
+  }, [ticker]);
+
+  useEffect(() => {
+    const checkWatchlist = async () => {
+      if (!ticker || !localStorage.getItem('token')) {
+        setIsWatched(false);
+        return;
+      }
+
+      try {
+        const res = await api.get(`/api/watchlist/check/${ticker.toUpperCase()}`);
+        setIsWatched(Boolean(res.data.watched));
+      } catch {
+        setIsWatched(false);
+      }
+    };
+
+    checkWatchlist();
   }, [ticker]);
 
   if (isLoading) {
@@ -82,6 +103,31 @@ const StockDetail = () => {
     if (val >= 1e12) return `₹${(val / 1e12).toFixed(2)}L Cr`;
     if (val >= 1e7) return `₹${(val / 1e7).toFixed(2)} Cr`;
     return `₹${val.toLocaleString('en-IN')}`;
+  };
+
+  const handleToggleWatchlist = async () => {
+    if (!localStorage.getItem('token')) {
+      alert('Please login to manage your watchlist.');
+      return;
+    }
+
+    setIsUpdatingWatchlist(true);
+    try {
+      if (isWatched) {
+        await api.delete(`/api/watchlist/symbol/${stock.symbol.toUpperCase()}`);
+        setIsWatched(false);
+      } else {
+        await api.post('/api/watchlist', {
+          symbol: stock.symbol.toUpperCase(),
+          companyName: stock.companyName,
+        });
+        setIsWatched(true);
+      }
+    } catch {
+      alert('Unable to update watchlist right now.');
+    } finally {
+      setIsUpdatingWatchlist(false);
+    }
   };
 
   return (
@@ -146,8 +192,15 @@ const StockDetail = () => {
           <div className="mc-card">
             <div className="bg-slate-100 px-4 py-3 font-bold text-slate-700 uppercase border-b-2 border-slate-200 flex justify-between items-center">
               Overview
-              <button className="text-orange-500 flex items-center gap-1 text-xs hover:text-orange-600">
-                <Star size={14} /> Add to Watchlist
+              <button
+                onClick={handleToggleWatchlist}
+                disabled={isUpdatingWatchlist}
+                className={`flex items-center gap-1 text-xs hover:text-orange-600 disabled:cursor-not-allowed disabled:opacity-60 ${
+                  isWatched ? 'text-orange-500' : 'text-slate-500'
+                }`}
+              >
+                <Star size={14} className={isWatched ? 'fill-orange-500' : ''} />
+                {isUpdatingWatchlist ? 'Updating...' : isWatched ? 'In Watchlist' : 'Add to Watchlist'}
               </button>
             </div>
             

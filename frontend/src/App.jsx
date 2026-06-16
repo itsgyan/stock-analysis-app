@@ -1,7 +1,5 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import { store } from './store/store';
 import Layout from './components/Layout';
 
 import PrivateRoute from './components/PrivateRoute';
@@ -28,38 +26,36 @@ const StockDetail = React.lazy(() => import('./pages/StockDetail'));
 
 function App() {
   return (
-    <Provider store={store}>
-      <BrowserRouter>
-        <PageTitleUpdater />
-        <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-orange-500 font-bold">Loading MarketLens Core...</div>}>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              {/* Public Routes */}
-              <Route index element={<Home />} />
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              
-              {/* Protected Routes */}
-              <Route element={<PrivateRoute />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="stock/:ticker" element={<StockDetail />} />
-                <Route path="news" element={<News />} />
-                <Route path="indices" element={<Indices />} />
-                <Route path="global-markets" element={<GlobalMarkets />} />
-                <Route path="stock-action" element={<StockAction />} />
-                <Route path="earnings" element={<Earnings />} />
-                <Route path="mutual-funds" element={<MutualFunds />} />
-                <Route path="sip-calculator" element={<SIPCalculator />} />
-                <Route path="nfos" element={<NFOs />} />
-                <Route path="elss" element={<ELSS />} />
-                <Route path="watchlist" element={<Watchlist />} />
-                <Route path="portfolio" element={<Portfolio />} />
-              </Route>
+    <BrowserRouter>
+      <PageTitleUpdater />
+      <Suspense fallback={<div className="w-full h-screen flex items-center justify-center text-orange-500 font-bold">Loading MarketLens Core...</div>}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            {/* Public Routes */}
+            <Route index element={<Home />} />
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            
+            {/* Protected Routes */}
+            <Route element={<PrivateRoute />}>
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="stock/:ticker" element={<StockDetail />} />
+              <Route path="news" element={<News />} />
+              <Route path="indices" element={<Indices />} />
+              <Route path="global-markets" element={<GlobalMarkets />} />
+              <Route path="stock-action" element={<StockAction />} />
+              <Route path="earnings" element={<Earnings />} />
+              <Route path="mutual-funds" element={<MutualFunds />} />
+              <Route path="sip-calculator" element={<SIPCalculator />} />
+              <Route path="nfos" element={<NFOs />} />
+              <Route path="elss" element={<ELSS />} />
+              <Route path="watchlist" element={<Watchlist />} />
+              <Route path="portfolio" element={<Portfolio />} />
             </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </Provider>
+          </Route>
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
   );
 }
 

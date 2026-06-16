@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { TrendingUp, TrendingDown, Menu, Search, User, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Menu, Search, User } from 'lucide-react';
 import { searchStocksApi } from '../api/stockApi';
 
 const tickerItems = [
@@ -35,7 +35,17 @@ const TickerTape = memo(() => {
   );
 });
 
-
+const fallbackItems = [
+  { name: "Reliance Industries", type: "Stock", ticker: "RELIANCE" },
+  { name: "Tata Consultancy Services", type: "Stock", ticker: "TCS" },
+  { name: "HDFC Bank", type: "Stock", ticker: "HDFCBANK" },
+  { name: "Infosys", type: "Stock", ticker: "INFY" },
+  { name: "ICICI Bank", type: "Stock", ticker: "ICICIBANK" },
+  { name: "Parag Parikh Flexi Cap", type: "Mutual Fund", ticker: "PPFAS" },
+  { name: "SBI Equity Hybrid Fund", type: "Mutual Fund", ticker: "SBIHYB" },
+  { name: "Sensex", type: "Index", ticker: "SENSEX" },
+  { name: "Nifty 50", type: "Index", ticker: "NIFTY" },
+];
 
 const SearchBar = memo(() => {
   const navigate = useNavigate();
@@ -44,19 +54,6 @@ const SearchBar = memo(() => {
   const [filteredResults, setFilteredResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef(null);
-
-  // Local fallback data in case the API call fails
-  const fallbackItems = [
-    { name: "Reliance Industries", type: "Stock", ticker: "RELIANCE" },
-    { name: "Tata Consultancy Services", type: "Stock", ticker: "TCS" },
-    { name: "HDFC Bank", type: "Stock", ticker: "HDFCBANK" },
-    { name: "Infosys", type: "Stock", ticker: "INFY" },
-    { name: "ICICI Bank", type: "Stock", ticker: "ICICIBANK" },
-    { name: "Parag Parikh Flexi Cap", type: "Mutual Fund", ticker: "PPFAS" },
-    { name: "SBI Equity Hybrid Fund", type: "Mutual Fund", ticker: "SBIHYB" },
-    { name: "Sensex", type: "Index", ticker: "SENSEX" },
-    { name: "Nifty 50", type: "Index", ticker: "NIFTY" },
-  ];
 
   useEffect(() => {
     if (!searchQuery.trim()) {

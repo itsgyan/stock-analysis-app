@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Briefcase } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Briefcase } from 'lucide-react';
 import api from '../api/axios';
 
 const Portfolio = () => {
@@ -52,7 +52,7 @@ const Portfolio = () => {
       await api.post(`/api/portfolios/add?symbol=${symbol.toUpperCase()}&quantity=${quantity}`);
       alert(`Successfully bought ${quantity} shares of ${symbol.toUpperCase()} at market price!`);
       fetchPortfolio(); // Refresh list
-    } catch (err) {
+    } catch {
       alert("Failed to add transaction. Check if the symbol is valid.");
     }
   };

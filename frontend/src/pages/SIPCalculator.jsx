@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const SIPCalculator = () => {
   const [investment, setInvestment] = useState(5000);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import api from '../api/axios';
 
@@ -9,20 +9,17 @@ const Watchlist = () => {
   const fetchWatchlist = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/watchlists/my');
+      const res = await api.get('/api/watchlist');
       
-      const mapped = res.data.stocks.map(stock => {
-        const change = stock.currentPrice - stock.previousClose;
-        const percent = stock.previousClose ? ((change / stock.previousClose) * 100) : 0;
-        return {
-          ticker: stock.symbol,
-          name: stock.companyName,
-          cmp: stock.currentPrice,
-          change: change,
-          percent: percent,
-          pos: change >= 0
-        };
-      });
+      const mapped = res.data.map((stock) => ({
+        id: stock.id,
+        ticker: stock.symbol,
+        name: stock.companyName,
+        cmp: stock.currentPrice,
+        change: stock.change ?? 0,
+        percent: stock.changePercent ?? 0,
+        pos: (stock.change ?? 0) >= 0
+      }));
       setWatchlist(mapped);
     } catch (err) {
       console.error("Failed to fetch watchlist:", err);
@@ -40,10 +37,10 @@ const Watchlist = () => {
     if (!symbol) return;
     
     try {
-      await api.post(`/api/watchlists/add?symbol=${symbol.toUpperCase()}`);
+      await api.post('/api/watchlist', { symbol: symbol.toUpperCase() });
       alert(`Successfully added ${symbol.toUpperCase()} to your watchlist!`);
       fetchWatchlist();
-    } catch (err) {
+    } catch {
       alert("Failed to add stock. Check if the symbol is valid.");
     }
   };
@@ -51,9 +48,9 @@ const Watchlist = () => {
   const handleRemoveStock = async (symbol) => {
     if(!window.confirm(`Are you sure you want to remove ${symbol}?`)) return;
     try {
-      await api.delete(`/api/watchlists/remove?symbol=${symbol.toUpperCase()}`);
+      await api.delete(`/api/watchlist/symbol/${symbol.toUpperCase()}`);
       fetchWatchlist();
-    } catch (err) {
+    } catch {
       alert("Failed to remove stock.");
     }
   };
