@@ -1,4 +1,4 @@
-package com.project.stockanalysis.util;
+package com.project.stockanalysis.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

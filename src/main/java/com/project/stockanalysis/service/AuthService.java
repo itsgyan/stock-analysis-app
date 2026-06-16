@@ -5,7 +5,7 @@ import com.project.stockanalysis.dto.LoginRequest;
 import com.project.stockanalysis.dto.RegisterRequest;
 import com.project.stockanalysis.entity.User;
 import com.project.stockanalysis.repository.UserRepository;
-import com.project.stockanalysis.util.JwtUtil;
+import com.project.stockanalysis.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

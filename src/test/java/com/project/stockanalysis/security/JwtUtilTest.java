@@ -1,4 +1,4 @@
-package com.project.stockanalysis.util;
+package com.project.stockanalysis.security;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

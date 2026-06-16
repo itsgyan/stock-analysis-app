@@ -1,6 +1,6 @@
-package com.project.stockanalysis.config;
+package com.project.stockanalysis.security;
 
-import com.project.stockanalysis.util.JwtUtil;
+import com.project.stockanalysis.security.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,4 +1,4 @@
-package com.project.stockanalysis.controller;
+package com.project.stockanalysis.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

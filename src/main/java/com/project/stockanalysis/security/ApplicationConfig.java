@@ -1,4 +1,4 @@
-package com.project.stockanalysis.config;
+package com.project.stockanalysis.security;
 
 import com.project.stockanalysis.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
